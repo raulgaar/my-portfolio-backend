@@ -95,5 +95,11 @@ namespace my_portfolio_backend.Controllers
         {
             return _context.Projects.Any(e => e.Id == id);
         }
+
+        [HttpGet("test-error")]
+        public IActionResult TestError()
+        {
+            throw new Exception("Simulated Error");
+        }
     }
 }

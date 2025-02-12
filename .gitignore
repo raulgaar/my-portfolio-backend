@@ -6,3 +6,4 @@ obj/
 *.dbmdl
 .vs/
 .env
+.fake

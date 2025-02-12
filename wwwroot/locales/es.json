@@ -1,0 +1,16 @@
+{
+    "welcome": "Bienvenidos a mi portafolio",
+    "description": "Soy un desarrollador de software apasionado por la tecnología.",
+    "selectLanguage": "Select Language:",
+    "navbar": {
+        "home": "Inicio",
+        "projects": "Proyectos",
+        "about": "Sobre mí",
+        "contact": "Contacto"
+    },
+    "projects": {
+        "title": "Mis Proyectos",
+        "link": "Ver proyecto",
+        "error": "Error al cargar los proyectos. Intentar mas tarde"
+    }
+}
