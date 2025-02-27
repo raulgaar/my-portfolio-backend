@@ -1,10 +1,13 @@
+using System.Text.Json;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using my_portfolio_backend.Models;
 
 namespace my_portfolio_backend.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/projects")]
     [ApiController]
     public class ProjectsController : ControllerBase
     {
@@ -17,9 +20,19 @@ namespace my_portfolio_backend.Controllers
 
         //Get: api/Projects
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Project>>> GetProjects()
+        public async Task<ActionResult<IEnumerable<Project>>> GetProjects([FromQuery] string lang = "en")
         {
-            return await _context.Projects.ToListAsync();
+            var projects = await _context.Projects.ToListAsync();
+
+            var localizedProjects = projects.Select(p => new
+            {
+                Id = p.Id,
+                Title = GetLocalizedValue(p.Title,lang),
+                Description = GetLocalizedValue(p.Description,lang),
+                Url = p.Url
+            });
+
+            return Ok(localizedProjects);
         }
 
         //Get: api/Projects/5
@@ -37,16 +50,25 @@ namespace my_portfolio_backend.Controllers
         }
 
         //Post: api/Projects
+        [Authorize]
         [HttpPost]
-        public async Task<ActionResult<Project>> PostProject(Project project)
+        public async Task<ActionResult<Project>> PostProject([FromBody] ProjectDto projectDto)
         {
+            var project = new Project
+            {
+                Title = JsonSerializer.Serialize(projectDto.Title),
+                Description = JsonSerializer.Serialize(projectDto.Description),
+                Url = projectDto.Url
+            };
+
             _context.Projects.Add(project);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetProject", new { id = project.Id }, project);
+            return CreatedAtAction("GetProjects", new { id = project.Id }, project);
         }
 
         //Put: api/Projects/5
+        [Authorize]
         [HttpPut("{id}")]
         public async Task<IActionResult> PutProject(int id, Project project)
         {
@@ -76,6 +98,7 @@ namespace my_portfolio_backend.Controllers
         }
         
         //Delete: api/Projects/5
+        [Authorize]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteProject(int id)
         {
@@ -100,6 +123,26 @@ namespace my_portfolio_backend.Controllers
         public IActionResult TestError()
         {
             throw new Exception("Simulated Error");
+        }
+
+        private string GetLocalizedValue(string json, string lang)
+        {
+            if (string.IsNullOrWhiteSpace(json)) return string.Empty;
+
+            try {
+                var dict = JsonSerializer.Deserialize<Dictionary<string, string>>(json);
+                return dict.ContainsKey(lang) ? dict[lang] : dict.GetValueOrDefault("en", string.Empty);
+            }
+            catch
+            {
+                return string.Empty;
+            }
+        }
+        public class ProjectDto
+        {
+            public Dictionary<string, string> Title { get; set; } = new();
+            public Dictionary<string, string> Description { get; set; } = new();
+            public string Url { get; set; } = string.Empty;
         }
     }
 }

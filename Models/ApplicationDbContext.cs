@@ -10,6 +10,6 @@ namespace my_portfolio_backend.Models
             }
 
             public DbSet<Project> Projects { get; set; }
-            //public DbSet<CV> CVs { get; set; }
+            public DbSet<User> Users { get; set; }
     }
 }
